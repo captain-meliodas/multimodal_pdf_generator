@@ -5,31 +5,48 @@ import { DownloadButton } from "./DownloadButton";
 import { TextBox } from "./TextBox";
 import "../App.css";
 
+enum ErrorCodes {
+  INSUFFICIENT_QUOTA = "insufficient_quota",
+  INVALID_API_KEY = "invalid_api_key",
+}
 interface IChatViewProps {}
+interface IChatStateProps {
+  textInput: string;
+  gptResponse: string;
+  dallEResponse: string;
+  apiKey: string;
+  pdfUrl: string;
+}
+
+//Access token for the APIs
+const GPT_TOKEN: string = process.env.REACT_APP_GPT_TOKEN || "";
+
+//url for GPT APIs
+const GPT_URL: string = process.env.REACT_APP_GPT_URL || "";
+const DALL_E_URL: string = process.env.REACT_APP_DALL_E_URL || "";
+
+//modals to use
+const GPT_MODEL: string = process.env.REACT_APP_GPT_MODEL || "";
+const DALL_E_MODEL: string = process.env.REACT_APP_DALL_E_MODEL || "";
 
 export const ChatView: React.FC<IChatViewProps> = () => {
-  const [textInput, setTextInput] = useState<string>("");
-  const [gptResponse, setGptResponse] = useState<string>("");
-  const [dallEResponse, setDallEResponse] = useState<string>("");
-  const [pdfUrl, setPdfUrl] = useState<string>("");
-
-  //Access token for the APIs
-  const GPT_TOKEN: string = process.env.REACT_APP_GPT_TOKEN || "";
-
-  //url for GPT APIs
-  const GPT_URL: string = process.env.REACT_APP_GPT_URL || "";
-  const DALL_E_URL: string = process.env.REACT_APP_DALL_E_URL || "";
-
-  //modals to use
-  const GPT_MODEL: string = process.env.REACT_APP_GPT_MODEL || "";
-  const DALL_E_MODEL: string = process.env.REACT_APP_DALL_E_MODEL || "";
+  const [localState, setLocalState] = useState<IChatStateProps>({
+    textInput: "",
+    gptResponse: "",
+    dallEResponse: "",
+    apiKey: "",
+    pdfUrl: "",
+  });
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>): void => {
-    setTextInput(e.target.value);
+    setLocalState((prevState) => ({
+      ...prevState,
+      textInput: e.target.value,
+    }));
   };
 
   const handleGenerate = async (): Promise<void> => {
-    const promptInp = textInput.trim();
+    const promptInp = localState.textInput.trim();
     try {
       //In case of empty input do not call APIs
       if (promptInp) {
@@ -42,11 +59,16 @@ export const ChatView: React.FC<IChatViewProps> = () => {
             max_tokens: 150,
           },
           {
-            headers: { Authorization: `Bearer ${GPT_TOKEN}` },
+            headers: {
+              Authorization: `Bearer ${localState.apiKey || GPT_TOKEN}`,
+            },
           }
         );
         const gptContent = gptResult.data.choices[0].message.content;
-        setGptResponse(gptContent);
+        setLocalState((prevState) => ({
+          ...prevState,
+          gptResponse: gptContent,
+        }));
 
         //get the dallEResult from dall-e modal
         const dallEResult = await axios.post(
@@ -58,16 +80,33 @@ export const ChatView: React.FC<IChatViewProps> = () => {
             size: "1024x1024",
           },
           {
-            headers: { Authorization: `Bearer ${GPT_TOKEN}` },
+            headers: {
+              Authorization: `Bearer ${localState.apiKey || GPT_TOKEN}`,
+            },
           }
         );
-        setDallEResponse(dallEResult.data.data[0].url);
+        setLocalState((prevState) => ({
+          ...prevState,
+          dallEResponse: dallEResult.data.data[0].url,
+        }));
 
         //calling the generate pdf method after getting the results
         generatePdf(gptContent, dallEResult.data.data[0].url);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating content", error);
+      if (
+        error?.response?.data?.error?.code === ErrorCodes.INSUFFICIENT_QUOTA ||
+        error?.response?.data?.error?.code === ErrorCodes.INVALID_API_KEY
+      ) {
+        const API_KEY = prompt(
+          "Look's like GPT API key is invalid or quota is expired, still you can paste your OpenAPI key here to continue using application or wait for some time."
+        );
+        setLocalState((prevState) => ({
+          ...prevState,
+          apiKey: API_KEY || "",
+        }));
+      }
     }
   };
 
@@ -75,12 +114,12 @@ export const ChatView: React.FC<IChatViewProps> = () => {
     const pdfDoc = await PDFDocument.create();
     const textPage = pdfDoc.addPage([600, 800]);
     const imagePage = pdfDoc.addPage([600, 800]);
-    const { width, height } = textPage.getSize();
+    const size = textPage.getSize();
 
     // Add gptContent to PDF
     textPage.drawText(text, {
       x: 10,
-      y: height - 10,
+      y: size.height - 10,
       size: 12,
       color: rgb(0, 0, 0),
       maxWidth: 580,
@@ -102,7 +141,10 @@ export const ChatView: React.FC<IChatViewProps> = () => {
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
     //create the blob url for downloading the pdf
     const url = URL.createObjectURL(blob);
-    setPdfUrl(url);
+    setLocalState((prevState) => ({
+      ...prevState,
+      pdfUrl: url,
+    }));
   };
 
   return (
@@ -111,7 +153,7 @@ export const ChatView: React.FC<IChatViewProps> = () => {
       <div className="container">
         <TextBox
           className="textBox"
-          textInput={textInput}
+          textInput={localState.textInput}
           placeholder="Enter your prompt here"
           handleInputChange={handleInputChange}
         />
@@ -126,10 +168,10 @@ export const ChatView: React.FC<IChatViewProps> = () => {
           will be provided below
         </p>
       </div>
-      {pdfUrl && (
+      {localState.pdfUrl && (
         <DownloadButton
           className="DownloadBtn"
-          pdfUrl={pdfUrl}
+          pdfUrl={localState.pdfUrl}
           label="Download PDF"
         />
       )}
