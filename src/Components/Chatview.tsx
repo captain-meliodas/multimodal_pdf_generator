@@ -11,7 +11,7 @@ export const ChatView: React.FC<IChatViewProps> = () => {
   const [textInput, setTextInput] = useState<string>("");
   const [gptResponse, setGptResponse] = useState<string>("");
   const [dallEResponse, setDallEResponse] = useState<string>("");
-  const [pdfUrl, setPdfUrl] = useState<string>("https://google.com");
+  const [pdfUrl, setPdfUrl] = useState<string>("");
 
   const GPT_TOKEN: string = process.env.REACT_APP_GPT_TOKEN || "";
   const GPT_URL: string = process.env.REACT_APP_GPT_URL || "";
