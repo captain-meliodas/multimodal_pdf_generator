@@ -50,6 +50,10 @@ It correctly bundles React in production mode and optimizes the build for the be
 The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
 
-# TODO:
+# Enhancements / TODO:
 
-- Need to test specs (using cypress) for each component created in the component folder
+- Improve image generation using paragraphs returned in the response by GPT-4.
+- Separate OpenAI API calls from UI and improve application security (Create a backend separately to do the calls).
+- Enhance page uses (use empty spaces efficiently) and improve on the pdf creation.
+- Improve the UI interface quality by using libraries like Material UI.
+- Need to test specs (using cypress) for each component created in the component folder.
