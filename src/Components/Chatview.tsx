@@ -1,9 +1,9 @@
 import React, { useState, ChangeEvent } from "react";
-import axios from "axios";
 import { PDFDocument, rgb } from "pdf-lib";
 import { DownloadButton } from "./DownloadButton";
 import { TextBox } from "./TextBox";
 import "../App.css";
+import { dallEApi, gptResultAPI } from "../api/gptApi";
 
 enum ErrorCodes {
   INSUFFICIENT_QUOTA = "insufficient_quota",
@@ -17,17 +17,6 @@ interface IChatStateProps {
   apiKey: string;
   pdfUrl: string;
 }
-
-//Access token for the APIs
-const GPT_TOKEN: string = process.env.REACT_APP_GPT_TOKEN || "";
-
-//url for GPT APIs
-const GPT_URL: string = process.env.REACT_APP_GPT_URL || "";
-const DALL_E_URL: string = process.env.REACT_APP_DALL_E_URL || "";
-
-//modals to use
-const GPT_MODEL: string = process.env.REACT_APP_GPT_MODEL || "";
-const DALL_E_MODEL: string = process.env.REACT_APP_DALL_E_MODEL || "";
 
 export const ChatView: React.FC<IChatViewProps> = () => {
   const [localState, setLocalState] = useState<IChatStateProps>({
@@ -51,19 +40,7 @@ export const ChatView: React.FC<IChatViewProps> = () => {
       //In case of empty input do not call APIs
       if (promptInp) {
         //get the gptResult from gpt modal
-        const gptResult = await axios.post(
-          GPT_URL,
-          {
-            model: GPT_MODEL,
-            messages: [{ role: "user", content: promptInp }],
-            max_tokens: 150,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${localState.apiKey || GPT_TOKEN}`,
-            },
-          }
-        );
+        const gptResult = await gptResultAPI(promptInp, localState.apiKey);
         const gptContent = gptResult.data.choices[0].message.content;
         setLocalState((prevState) => ({
           ...prevState,
@@ -71,20 +48,7 @@ export const ChatView: React.FC<IChatViewProps> = () => {
         }));
 
         //get the dallEResult from dall-e modal
-        const dallEResult = await axios.post(
-          DALL_E_URL,
-          {
-            model: DALL_E_MODEL,
-            prompt: promptInp,
-            n: 1,
-            size: "1024x1024",
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${localState.apiKey || GPT_TOKEN}`,
-            },
-          }
-        );
+        const dallEResult = await dallEApi(promptInp, localState.apiKey);
         setLocalState((prevState) => ({
           ...prevState,
           dallEResponse: dallEResult.data.data[0].url,
