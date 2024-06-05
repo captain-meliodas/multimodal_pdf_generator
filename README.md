@@ -56,4 +56,4 @@ Your app is ready to be deployed!
 - Separate OpenAI API calls from UI and improve application security (Create a backend separately to do the calls).
 - Enhance page uses (use empty spaces efficiently) and improve on the pdf creation.
 - Improve the UI interface quality by using libraries like Material UI.
-- Need to test specs (using cypress) for each component created in the component folder.
+- Need to write test specs (using cypress) for each component created in the component folder.
