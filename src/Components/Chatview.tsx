@@ -4,6 +4,7 @@ import { DownloadButton } from "./DownloadButton";
 import { TextBox } from "./TextBox";
 import "../App.css";
 import { dallEApi, gptResultAPI } from "../api/gptApi";
+import { imageUrl, text } from "../mock/const";
 
 enum ErrorCodes {
   INSUFFICIENT_QUOTA = "insufficient_quota",
@@ -35,13 +36,20 @@ export const ChatView: React.FC<IChatViewProps> = () => {
   };
 
   const handleGenerate = async (): Promise<void> => {
+    setLocalState((prevState) => ({
+      ...prevState,
+      pdfUrl: "",
+    }));
     const promptInp = localState.textInput.trim();
     try {
       //In case of empty input do not call APIs
       if (promptInp) {
+        let gptContent: string = "";
+        let imageUrl: string = "";
+
         //get the gptResult from gpt modal
         const gptResult = await gptResultAPI(promptInp, localState.apiKey);
-        const gptContent = gptResult.data.choices[0].message.content;
+        gptContent = gptResult.data.choices[0].message.content;
         setLocalState((prevState) => ({
           ...prevState,
           gptResponse: gptContent,
@@ -49,9 +57,10 @@ export const ChatView: React.FC<IChatViewProps> = () => {
 
         //get the dallEResult from dall-e modal
         const dallEResult = await dallEApi(promptInp, localState.apiKey);
+        imageUrl = dallEResult.data.data[0].url;
         setLocalState((prevState) => ({
           ...prevState,
-          dallEResponse: dallEResult.data.data[0].url,
+          dallEResponse: imageUrl,
         }));
 
         //calling the generate pdf method after getting the results
@@ -70,11 +79,23 @@ export const ChatView: React.FC<IChatViewProps> = () => {
           ...prevState,
           apiKey: API_KEY || "",
         }));
+
+        API_KEY && alert("Now try again by clicking on generate pdf");
+
+        //Just to mock the response to show working of code
+        if (API_KEY === "mock_response") {
+          //calling the generate pdf method after getting the mock results
+          generatePdf(text, imageUrl, API_KEY);
+        }
       }
     }
   };
 
-  const generatePdf = async (text: string, imageUrl: string): Promise<void> => {
+  const generatePdf = async (
+    text: string,
+    imageUrl: string,
+    apiKey: string = ""
+  ): Promise<void> => {
     const pdfDoc = await PDFDocument.create();
     const textPage = pdfDoc.addPage([600, 800]);
     const imagePage = pdfDoc.addPage([600, 800]);
@@ -92,7 +113,12 @@ export const ChatView: React.FC<IChatViewProps> = () => {
 
     // Fetch and add png image to PDF from dallEResult
     const imageBytes = await fetch(imageUrl).then((res) => res.arrayBuffer());
-    const image = await pdfDoc.embedPng(imageBytes);
+    let image: any = "";
+    if (apiKey === "mock_response") {
+      image = await pdfDoc.embedJpg(imageBytes);
+    } else {
+      image = await pdfDoc.embedPng(imageBytes);
+    }
 
     imagePage.drawImage(image, {
       x: imagePage.getWidth() / 2 - 500 / 2,

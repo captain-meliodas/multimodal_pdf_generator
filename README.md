@@ -14,6 +14,10 @@ REACT_APP_GPT_MODEL = "gpt model to use"
 REACT_APP_DALL_E_MODEL = "dall-e model to use"
 ```
 
+## How to check mocked response
+
+Mocked response is already there in the code for visual representation of multimodal pdf. You need to pass "mock_response" to get the mock response in the browser prompt box if Open API key quota is expired or wrong Open API key is expired.
+
 ## Available Scripts
 
 In the project directory, you can run:
