@@ -52,9 +52,11 @@ export const ChatView: React.FC<IChatViewProps> = () => {
         }));
         let gptContent: string = "";
         let imageUrl: string = "";
+        // Custom prompt generation
+        const customPrompt = `Please generate a detailed and engaging article based on the following input: "${promptInp}". Ensure that the content is informative and interesting, suitable for inclusion in a multi-modal PDF document.`;
 
         //get the gptResult from gpt modal
-        const gptResult = await gptResultAPI(promptInp, localState.apiKey);
+        const gptResult = await gptResultAPI(customPrompt, localState.apiKey);
         gptContent = gptResult.data.choices[0].message.content;
         setLocalState((prevState) => ({
           ...prevState,
