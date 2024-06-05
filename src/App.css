@@ -74,3 +74,10 @@
   gap: 5px;
   margin-left: 50px;
 }
+
+.loadingText {
+  font-size: 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+}

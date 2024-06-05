@@ -17,6 +17,7 @@ interface IChatStateProps {
   dallEResponse: string;
   apiKey: string;
   pdfUrl: string;
+  loading: boolean;
 }
 
 export const ChatView: React.FC<IChatViewProps> = () => {
@@ -26,6 +27,7 @@ export const ChatView: React.FC<IChatViewProps> = () => {
     dallEResponse: "",
     apiKey: "",
     pdfUrl: "",
+    loading: false,
   });
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>): void => {
@@ -44,6 +46,10 @@ export const ChatView: React.FC<IChatViewProps> = () => {
     try {
       //In case of empty input do not call APIs
       if (promptInp) {
+        setLocalState((prevState) => ({
+          ...prevState,
+          loading: true,
+        }));
         let gptContent: string = "";
         let imageUrl: string = "";
 
@@ -78,6 +84,7 @@ export const ChatView: React.FC<IChatViewProps> = () => {
         setLocalState((prevState) => ({
           ...prevState,
           apiKey: API_KEY || "",
+          loading: API_KEY === null || API_KEY === "" ? false : true,
         }));
 
         API_KEY && alert("Now try again by clicking on generate pdf");
@@ -131,9 +138,11 @@ export const ChatView: React.FC<IChatViewProps> = () => {
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
     //create the blob url for downloading the pdf
     const url = URL.createObjectURL(blob);
+    debugger;
     setLocalState((prevState) => ({
       ...prevState,
       pdfUrl: url,
+      loading: false,
     }));
   };
 
@@ -164,6 +173,11 @@ export const ChatView: React.FC<IChatViewProps> = () => {
           pdfUrl={localState.pdfUrl}
           label="Download PDF"
         />
+      )}
+      {localState.loading && (
+        <div className="loadingText">
+          <p>Your pdf download button will appear here shortly...</p>
+        </div>
       )}
     </div>
   );
