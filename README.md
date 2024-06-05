@@ -14,6 +14,13 @@ REACT_APP_GPT_MODEL = "gpt model to use"
 REACT_APP_DALL_E_MODEL = "dall-e model to use"
 ```
 
+## How to start the application in local
+```
+- switch to the root directory of the multimodal_pdf_generator
+- Then run the command "npm install" to install the dependencies
+- Then run the command "npm start" to start the server
+```
+
 ## Updating API keys and mocking response
 
 The mocked response is already present in the code for a visual representation of a multimodal pdf. You need to pass "mock_response" to get the mock response in the browser prompt box. When Open API key quota is expired or the wrong Open API key is given, this error will create a prompt on top of the browser to input new API keys or you can type "mock_response" in the browser prompt input on top once it is visible to get a download pdf button which contains mocked data with two pages (containing image and text).
