@@ -138,7 +138,6 @@ export const ChatView: React.FC<IChatViewProps> = () => {
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
     //create the blob url for downloading the pdf
     const url = URL.createObjectURL(blob);
-    debugger;
     setLocalState((prevState) => ({
       ...prevState,
       pdfUrl: url,
